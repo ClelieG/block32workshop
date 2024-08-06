@@ -8,7 +8,16 @@ const init = async () => {
     await client.connect();
         console.log('connected to database');
     
-    let SQL = ``;
+    let SQL = `
+        DROP TABLE IF EXISTS flavors;
+        CREATE TABLE flavors(
+            id SERIAL PRIMARY KEY, 
+            name VARCHAR (50) NOT NULL,
+            created_at TIMESTAMP DEFAULT now(),
+            updated_at TIMESTAMP DEFAULT now(),
+            is_favorite BOOLEAN DEFAULT FALSE
+        );
+        `;
     await client.query(SQL);
         console.log('tables created');
     SQL = ``;
