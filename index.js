@@ -7,15 +7,82 @@ const app = express()
 app.use(express.json());
 app.use(require('morgan')('dev'));
 
-app.post('/api/flavors', async(req, res, next) =>{})
+app.post('/api/flavors', async(req, res, next) =>{
+    try {
+        const SQL = `
+            INSERT INTO flavors (name, is_favorite)
+            VALUES ($1, $2) RETURNING *
+            `;
+        const response = await client.query(SQL, [req.body.name, req.body.is_favorite
+        ]);
+        res.status(201).send(response.rows[0]);
+    } catch (error) {
+        next(error);
+    }
+})
 
-app.get('/api/flavors', async(req, res, next) =>{})
+app.get('/api/flavors', async(req, res, next) =>{
+   try{
+    const SQL = `
+    SELECT * FROM flavors ORDER BY created_at DESC;
+    `;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+   } catch (error){
+        next(error);
+   }
+});
 
-app.get('/api/flavors/:id', async(req, res, next) =>{})
+app.get('/api/flavors/:id', async(req, res, next) =>{
+  try{
+    const SQL = `
+    SELECT * FROM flavors WHERE id = $1;
+    `;
+    const response = await client.query(SQL, [
+        req.params.id
+    ]);
+    if (response.rows.length === 0) {
+        return res.status(404).send('ERROR Flavor not found');
+    }
+    res.send(response.rows[0]);
+  } catch (error){
+        next(error);
+  }
+});
 
-app.put('/api/flavors', async (req, res, next) =>{})
+app.put('/api/flavors/:id', async (req, res, next) =>{
+   try{ 
+    const SQL = `
+        UPDATE flavors
+        SET name = $1, is_favorite = $2, updated_at = now()
+        WHERE id = $3
+        RETURNING *
+        `;
+    const response = await client.query(SQL, [
+        req.body.name, 
+        req.body.is_favorite, 
+        req.params.id
+    ]);
+    if (response.rows.length === 0) {
+        return res.status(404).send('ERROR Flavor not found');
+    }
+    res.send(response.rows[0]);
+   } catch(error){
+        next(error);
+   }
+});
 
-app.delete('/api/flavors/:id', async (req, res, next) =>{})
+app.delete('/api/flavors/:id', async (req, res, next) =>{
+   try{ 
+    const SQL = `
+    DELETE FROM flavors WHERE id = $1;
+    `;
+    await client.query(SQL, [req.params.id]);
+    res.sendStatus(204);
+   } catch(error){
+        next(error);
+   }
+});
 
 //
 
